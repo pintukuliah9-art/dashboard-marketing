@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Laporan Harian — Yuyun</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --purple: #7C3AED; --purple2: #EDE9FE;
+  --blue:   #1A4FA0; --blue2:   #DBEAFE;
+  --navy:   #0D1B35;
+  --teal:   #0D9488; --teal2: #CCFBF1;
+  --green:  #16A34A; --green2:#DCFCE7;
+  --red:    #DC2626; --red2:  #FEE2E2;
+  --gold:   #D97706; --gold2: #FEF3C7;
+  --surface:#F8FAFC; --card:#FFFFFF;
+  --border: #E2E8F0; --text:#0F172A; --muted:#64748B;
+  --sidebar:220px;
+}
+body.dark{--surface:#0F172A;--card:#1E293B;--border:#334155;--text:#F1F5F9;--muted:#94A3B8;--navy:#93C5FD}
+body{font-family:'Inter',sans-serif;background:var(--surface);color:var(--text);font-size:13.5px}
+
+.shell{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar);background:#1D1140;color:#fff;position:fixed;top:0;left:0;height:100vh;display:flex;flex-direction:column;z-index:100}
+.sb-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-logo-name{font-family:'DM Serif Display',serif;font-size:17px;color:#fff}
+.sb-logo-role{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px}
+.sb-nav{flex:1;padding:12px 0;overflow-y:auto}
+.sb-group-label{font-size:9.5px;color:rgba(255,255,255,.35);letter-spacing:1.2px;text-transform:uppercase;padding:12px 18px 5px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 18px;font-size:12.5px;font-weight:500;color:rgba(255,255,255,.65);cursor:pointer;border-left:3px solid transparent}
+.sb-item:hover{color:#fff;background:rgba(255,255,255,.06)}
+.sb-item.active{color:#fff;background:rgba(255,255,255,.08);border-left-color:var(--purple)}
+.sb-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.sb-badge{margin-left:auto;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--purple);color:#fff}
+.sb-badge.warn{background:var(--gold)}
+.sb-footer{padding:14px 18px;border-top:1px solid rgba(255,255,255,.1)}
+.sb-darkmode{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.5);cursor:pointer}
+.sb-darkmode:hover{color:#fff}
+
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar-title{font-family:'DM Serif Display',serif;font-size:16px;color:var(--navy)}
+body.dark .topbar-title{color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.live-badge{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:var(--surface);border:1px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;position:relative;color:var(--muted)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.live-badge.live .live-dot{background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sync-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;min-width:240px;box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:200}
+.sync-menu.open{display:block}
+.sync-menu-item{font-size:12px;color:var(--muted);padding:4px 0}
+.sync-menu-btn{width:100%;padding:7px 12px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text);font-size:12px;cursor:pointer;text-align:left;margin-top:4px;font-family:'Inter',sans-serif}
+.sync-menu-btn:hover{background:var(--surface)}
+.content{padding:20px 24px;flex:1}
+.page{display:none}
+.page.active{display:block}
+
+/* Progress ring */
+.progress-section{display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.prog-card{flex:1;min-width:140px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px}
+.prog-ring{position:relative;width:44px;height:44px;flex-shrink:0}
+.prog-ring svg{transform:rotate(-90deg)}
+.prog-ring-track{fill:none;stroke:var(--border);stroke-width:4}
+.prog-ring-fill{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .5s ease}
+.prog-ring-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--text)}
+.prog-title{font-weight:700;font-size:12.5px;margin-bottom:2px}
+.prog-sub{font-size:11px;color:var(--muted)}
+
+/* Datebar */
+.datebar{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 16px;margin-bottom:16px;flex-wrap:wrap}
+.datebar-left{display:flex;align-items:center;gap:10px}
+.date-input{border:1.5px solid var(--border);border-radius:8px;padding:6px 11px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text);background:var(--card)}
+.status-chip{font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px}
+.status-chip.kosong{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+.status-chip.terisi{background:var(--green2);color:#14532D}
+.status-chip.draft{background:var(--gold2);color:#92400E}
+
+/* Section */
+.lh-section{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.lh-section-head{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;color:var(--navy);cursor:pointer;user-select:none}
+body.dark .lh-section-head{color:var(--text)}
+.lh-section-head:hover{background:var(--surface)}
+.lh-chevron{margin-left:auto;color:var(--muted);font-size:11px;transition:transform .2s}
+.lh-section.collapsed .lh-chevron{transform:rotate(-90deg)}
+.lh-section.collapsed .lh-section-body{display:none}
+.lh-section-body{padding:14px 16px}
+.lh-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.lh-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.lh-label{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.lh-input{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text);background:var(--card);outline:none}
+.lh-input:focus{border-color:var(--purple)}
+.lh-input.sm{width:130px}
+.lh-textarea{min-height:80px;resize:vertical}
+
+/* Closing table */
+.closing-head{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr 1fr auto;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);margin-bottom:8px}
+.closing-head span{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.closing-row{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center}
+
+/* Lead per PIC */
+.lead-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.lead-row:last-child{border-bottom:none}
+.lead-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.lead-name{flex:1;font-weight:600;font-size:13px}
+.lead-input{width:90px;border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text);background:var(--card);text-align:right}
+.lead-input:focus{outline:none;border-color:var(--purple)}
+.lead-unit{font-size:11px;color:var(--muted);flex-shrink:0}
+
+/* Kampanye */
+.kamp-row{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px}
+.kamp-row-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.kamp-nama-input{flex:1;border:1.5px solid var(--border);border-radius:8px;padding:6px 11px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text);background:var(--card)}
+.kamp-nama-input:focus{outline:none;border-color:var(--purple)}
+.kamp-nums{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kamp-num-field .lh-label{margin-bottom:4px}
+
+/* Dynamic row */
+.dyn-remove{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;flex-shrink:0;font-size:12px}
+.dyn-remove:hover{border-color:var(--red);color:var(--red)}
+.add-row-btn{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--purple);cursor:pointer;padding:6px 0}
+
+/* Footer */
+.footer-bar{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--border);padding:12px 16px;display:flex;gap:10px;justify-content:flex-end;border-radius:0 0 12px 12px}
+.btn-draft{padding:9px 18px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-weight:700;font-size:12.5px;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-submit{padding:9px 22px;border-radius:8px;border:none;background:var(--purple);color:#fff;font-weight:700;font-size:12.5px;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-submit.gold{background:var(--gold)}
+
+/* Ringkasan bulanan */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.stat-lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.stat-val{font-family:'DM Serif Display',serif;font-size:18px;font-weight:700;color:var(--text)}
+.stat-val.purple{color:var(--purple)}
+.stat-val.green{color:var(--green)}
+.stat-val.gold{color:var(--gold)}
+.mini-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.mini-tbl th{text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;padding:6px 10px;border-bottom:2px solid var(--border);background:var(--surface)}
+.mini-tbl td{padding:8px 10px;border-bottom:1px solid var(--border)}
+.mini-tbl tr:last-child td{border-bottom:none}
+.mini-tbl tr:hover td{background:var(--surface)}
+.mini-tbl .num{text-align:right;font-weight:700}
+.mini-tbl .total-row td{font-weight:700;background:var(--surface);border-top:2px solid var(--border)}
+
+/* Naratif */
+.narasi-item{display:flex;gap:8px;margin-bottom:8px}
+.narasi-item .lh-input{flex:1}
+
+/* Alert */
+.alert{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-radius:10px;margin-bottom:14px;font-size:12.5px;line-height:1.6}
+.alert.info{background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF}
+.alert.success{background:var(--green2);border:1px solid #BBF7D0;color:#14532D}
+.alert.warn{background:var(--gold2);border:1px solid #FDE68A;color:#92400E}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;z-index:999;background:var(--navy);color:#fff;border-radius:10px;padding:12px 18px;min-width:220px;max-width:340px;box-shadow:0 4px 20px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:all .25s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-title{font-weight:700;font-size:13px;margin-bottom:2px}
+.toast-body{font-size:12px;color:rgba(255,255,255,.75)}
+
+/* Setup overlay */
+.setup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:center;justify-content:center}
+.setup-overlay.hidden{display:none}
+.setup-box{background:var(--card);border-radius:16px;padding:28px 32px;max-width:420px;width:90%}
+.setup-title{font-family:'DM Serif Display',serif;font-size:20px;color:var(--navy);margin-bottom:6px}
+body.dark .setup-title{color:var(--text)}
+.setup-sub{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.6}
+.setup-input{width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text);background:var(--card);outline:none;margin-bottom:12px}
+.setup-input:focus{border-color:var(--purple)}
+.setup-btn{width:100%;padding:11px;border-radius:9px;border:none;background:var(--purple);color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:'Inter',sans-serif}
+
+/* Ranking badge */
+.rank-1{color:var(--gold);font-weight:800} .rank-2{color:var(--muted);font-weight:700} .rank-3{color:#CD7F32;font-weight:700}
+
+@media(max-width:640px){
+  .sidebar{transform:translateX(-100%);transition:transform .25s}
+  .sidebar.open{transform:none}
+  .main{margin-left:0}
+  .lh-grid3,.lh-grid2,.stat-row{grid-template-columns:1fr}
+  .closing-row,.closing-head{grid-template-columns:1fr 1fr auto}
+  .kamp-nums{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-name">Dashboard Laporan</div>
+    <div class="sb-logo-role">📊 Yuyun — Marketing</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-group-label">Input Harian</div>
+    <div class="sb-item active" onclick="nav(this,'page-marketing')">
+      <span class="sb-icon">🎯</span> Closing Hari Ini
+      <span class="sb-badge warn" id="badge-mkt" style="display:none">!</span>
+    </div>
+    <div class="sb-item" onclick="nav(this,'page-lead')">
+      <span class="sb-icon">📈</span> Lead per PIC
+    </div>
+    <div class="sb-item" onclick="nav(this,'page-kampanye')">
+      <span class="sb-icon">📣</span> Kinerja Iklan
+    </div>
+    <div class="sb-group-label">Laporan Bulanan</div>
+    <div class="sb-item" onclick="nav(this,'page-bulanan')">
+      <span class="sb-icon">📊</span> Ringkasan Marketing
+    </div>
+    <div class="sb-item" onclick="nav(this,'page-naratif')">
+      <span class="sb-icon">✍️</span> Capaian &amp; Kendala
+    </div>
+  </div>
+  <div class="sb-footer">
+    <div class="sb-darkmode" onclick="toggleDark()"><span id="dark-icon">🌙</span> Mode Gelap</div>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">📊 Laporan Harian — Marketing</div>
+    <div class="topbar-right">
+      <div class="live-badge" id="sync-badge" onclick="toggleSyncMenu()">
+        <span class="live-dot"></span><span id="sync-label">Offline</span>
+        <div class="sync-menu" id="sync-menu">
+          <div class="sync-menu-item">Backend: <b id="sync-menu-url">Belum tersambung</b></div>
+          <div class="sync-menu-item">Update: <b id="sync-menu-time">—</b></div>
+          <button class="sync-menu-btn" onclick="manualRefresh()">🔄 Refresh</button>
+          <button class="sync-menu-btn" onclick="openSetup()">⚙️ Ganti URL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="content">
+
+<!-- ══ PAGE: CLOSING ══════════════════════════════════════════ -->
+<div id="page-marketing" class="page active">
+
+  <div class="datebar">
+    <div class="datebar-left">
+      <span style="font-size:12px;color:var(--muted);font-weight:600">Tanggal:</span>
+      <input type="date" class="date-input" id="mkt-tanggal" onchange="loadMarketing()"/>
+    </div>
+    <span class="status-chip kosong" id="mkt-status-chip">Belum diisi</span>
+  </div>
+
+  <div class="progress-section" id="mkt-progress-section"></div>
+
+  <div class="lh-section" id="sec-closing">
+    <div class="lh-section-head" onclick="toggleSec('sec-closing')">
+      🎯 Closing Hari Ini <span class="lh-chevron">▾</span>
+    </div>
+    <div class="lh-section-body">
+      <div class="closing-head">
+        <span>Nama Mahasiswa</span>
+        <span>Program</span>
+        <span>Perguruan Tinggi</span>
+        <span>Closing Dari</span>
+        <span>Nama PIC</span>
+        <span></span>
+      </div>
+      <div id="closing-list"></div>
+      <div class="add-row-btn" onclick="addClosing()">＋ Tambah Closing</div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <button class="btn-draft" onclick="saveMarketing(false)">💾 Simpan Draft</button>
+    <button class="btn-submit" onclick="saveMarketing(true)">✅ Submit Closing</button>
+  </div>
+</div><!-- /page-marketing -->
+
+
+<!-- ══ PAGE: LEAD PER PIC ═════════════════════════════════════ -->
+<div id="page-lead" class="page">
+
+  <div class="datebar">
+    <div class="datebar-left">
+      <span style="font-size:12px;color:var(--muted);font-weight:600">Tanggal:</span>
+      <input type="date" class="date-input" id="lead-tanggal" onchange="loadLead()"/>
+    </div>
+    <span class="status-chip kosong" id="lead-status-chip">Belum diisi</span>
+  </div>
+
+  <div class="alert info">
+    <span>ℹ️</span>
+    <span>Isi jumlah <b>total lead</b> yang diterima masing-masing PIC dari iklan hari ini.</span>
+  </div>
+
+  <div class="lh-section">
+    <div class="lh-section-head" style="cursor:default">📈 Lead per PIC</div>
+    <div class="lh-section-body">
+      <div id="lead-list"></div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <button class="btn-draft" onclick="saveLead(false)">💾 Simpan Draft</button>
+    <button class="btn-submit" onclick="saveLead(true)">✅ Submit Lead</button>
+  </div>
+</div><!-- /page-lead -->
+
+
+<!-- ══ PAGE: KINERJA IKLAN ════════════════════════════════════ -->
+<div id="page-kampanye" class="page">
+
+  <div class="datebar">
+    <div class="datebar-left">
+      <span style="font-size:12px;color:var(--muted);font-weight:600">Tanggal:</span>
+      <input type="date" class="date-input" id="kamp-tanggal"/>
+    </div>
+    <span style="font-size:12px;color:var(--muted)">Data iklan diisi bersamaan dengan Lead per PIC</span>
+  </div>
+
+  <div class="alert info">
+    <span>ℹ️</span>
+    <span>Opsional — isi jika ada update performa iklan hari ini (CPL, impresi, belanja iklan per kampanye).</span>
+  </div>
+
+  <div class="lh-section">
+    <div class="lh-section-head" style="cursor:default">📣 Kampanye Aktif</div>
+    <div class="lh-section-body">
+      <div id="kampanye-list"></div>
+      <div class="add-row-btn" onclick="addKampanye()">＋ Tambah Kampanye</div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <button class="btn-submit" onclick="saveKampanye()">💾 Simpan Data Iklan</button>
+  </div>
+</div><!-- /page-kampanye -->
+
+
+<!-- ══ PAGE: RINGKASAN BULANAN ════════════════════════════════ -->
+<div id="page-bulanan" class="page">
+  <div class="datebar" style="margin-bottom:16px">
+    <div class="datebar-left">
+      <span style="font-size:12px;color:var(--muted);font-weight:600">Periode:</span>
+      <select class="date-input" id="bul-periode" onchange="loadBulanan()"></select>
+    </div>
+    <span class="status-chip" id="bul-chip">Memuat...</span>
+  </div>
+  <div id="bul-content">
+    <div style="text-align:center;padding:40px;color:var(--muted)">⏳ Pilih periode...</div>
+  </div>
+</div><!-- /page-bulanan -->
+
+
+<!-- ══ PAGE: NARATIF ══════════════════════════════════════════ -->
+<div id="page-naratif" class="page">
+  <div class="datebar" style="margin-bottom:16px">
+    <div class="datebar-left">
+      <span style="font-size:12px;color:var(--muted);font-weight:600">Periode:</span>
+      <select class="date-input" id="nar-periode" onchange="loadNarasi()"></select>
+    </div>
+    <span class="status-chip" id="nar-chip">Draft</span>
+  </div>
+
+  <div class="alert warn">
+    <span>📝</span>
+    <span>Angka closing &amp; lead sudah terakumulasi otomatis. Di sini kamu hanya perlu menuliskan <b>capaian, kendala, dan rekomendasi</b> untuk bulan ini.</span>
+  </div>
+
+  <div class="lh-section" id="sec-nar-mkt">
+    <div class="lh-section-head" onclick="toggleSec('sec-nar-mkt')">
+      📊 Marketing — Capaian, Kendala &amp; Rekomendasi <span class="lh-chevron">▾</span>
+    </div>
+    <div class="lh-section-body">
+      <div style="margin-bottom:14px">
+        <div class="lh-label" style="margin-bottom:8px">✅ Capaian Bulan Ini</div>
+        <div id="nar-capaian-list"></div>
+        <div class="add-row-btn" onclick="addNarasiItem('nar-capaian-list')">＋ Tambah Capaian</div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div class="lh-label" style="margin-bottom:8px">⚠️ Kendala</div>
+        <div id="nar-kendala-list"></div>
+        <div class="add-row-btn" onclick="addNarasiItem('nar-kendala-list')">＋ Tambah Kendala</div>
+      </div>
+      <div>
+        <div class="lh-label" style="margin-bottom:8px">💡 Rekomendasi</div>
+        <div id="nar-rekomendasi-list"></div>
+        <div class="add-row-btn" onclick="addNarasiItem('nar-rekomendasi-list')">＋ Tambah Rekomendasi</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <button class="btn-draft" onclick="saveNarasi(false)">💾 Simpan Draft</button>
+    <button class="btn-submit gold" onclick="saveNarasi(true)">📤 Kirim ke GM</button>
+  </div>
+</div><!-- /page-naratif -->
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<div class="setup-overlay" id="setup-overlay">
+  <div class="setup-box">
+    <div class="setup-title">Hubungkan ke Google Sheets</div>
+    <div class="setup-sub">Tempel Web App URL dari Apps Script. Minta URL ini ke GM jika belum punya.</div>
+    <input class="setup-input" id="setup-url" type="url" placeholder="https://script.google.com/macros/s/.../exec"/>
+    <button class="setup-btn" onclick="simpanSetup()">Hubungkan</button>
+    <div style="margin-top:10px;text-align:center">
+      <span style="font-size:12px;color:var(--muted);cursor:pointer" onclick="demoMode()">Coba tanpa backend (mode demo)</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <div class="toast-title" id="toast-title"></div>
+  <div class="toast-body" id="toast-body"></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   DASHBOARD YUYUN — Marketing
+═══════════════════════════════════════════════════ */
+const NAMA_USER = 'Yuyun';
+let BACKEND = '', DEMO_MODE = false;
+let KARYAWAN_LIST = [];
+let TIM_PMB_LIST = [];       // dari sheet Tim_PMB
+let KOORDINATOR_LIST = [];   // dari sheet Koordinator
+let closingRows = [], kampanyeRows = [], leadData = {};
+
+// ── Init ─────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  setTanggalDefault();
+  const url = localStorage.getItem('yuyun-backend-url');
+  if (url) {
+    BACKEND = url;
+    document.getElementById('setup-overlay').classList.add('hidden');
+    setSyncStatus('live');
+    initialLoad();
+  }
+});
+
+function setTanggalDefault() {
+  const t = todayStr();
+  ['mkt-tanggal','lead-tanggal','kamp-tanggal'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = t;
+  });
+}
+
+function initialLoad() {
+  loadKaryawan();
+  loadPeriodeOptions();
+  loadMarketing();
+  loadProgressBulan();
+  checkBadge();
+}
+
+// ── Setup ─────────────────────────────────────────
+function simpanSetup() {
+  const url = document.getElementById('setup-url').value.trim();
+  if (!url.includes('script.google.com')) { toast('URL salah', 'Gunakan URL dari Apps Script deployment.', 'warn'); return; }
+  BACKEND = url;
+  localStorage.setItem('yuyun-backend-url', url);
+  document.getElementById('setup-overlay').classList.add('hidden');
+  setSyncStatus('live');
+  initialLoad();
+  toast('✅ Terhubung', 'Dashboard siap digunakan.');
+}
+
+function demoMode() {
+  DEMO_MODE = true;
+  document.getElementById('setup-overlay').classList.add('hidden');
+  setSyncStatus('demo');
+  KARYAWAN_LIST = ['Tito','Wenda','Kholis','Nuruk','Yuyun','Fajar','Bima','Nisa'];
+  setTanggalDefault();
+  loadPeriodeOptions();
+  renderLeadRows();
+  toast('🧪 Mode Demo','Perubahan tidak tersimpan.');
+}
+
+function openSetup() {
+  document.getElementById('sync-menu').classList.remove('open');
+  document.getElementById('setup-overlay').classList.remove('hidden');
+}
+
+// ── Nav ───────────────────────────────────────────
+function nav(el, pageId) {
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(pageId).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (pageId === 'page-lead')    { syncLeadTanggal(); loadLead(); }
+  if (pageId === 'page-kampanye') syncKampTanggal();
+  if (pageId === 'page-bulanan')  loadBulanan();
+  if (pageId === 'page-naratif')  loadNarasi();
+}
+
+function syncLeadTanggal() {
+  const t = document.getElementById('mkt-tanggal').value;
+  const el = document.getElementById('lead-tanggal'); if(el) el.value = t;
+}
+function syncKampTanggal() {
+  const t = document.getElementById('mkt-tanggal').value;
+  const el = document.getElementById('kamp-tanggal'); if(el) el.value = t;
+}
+
+function toggleSec(id) { document.getElementById(id).classList.toggle('collapsed'); }
+
+// ── Sync status ───────────────────────────────────
+function setSyncStatus(s) {
+  const badge = document.getElementById('sync-badge');
+  const dot   = badge.querySelector('.live-dot');
+  const label = document.getElementById('sync-label');
+  badge.classList.toggle('live', s==='live');
+  dot.style.background   = s==='live' ? 'var(--green)' : s==='demo' ? 'var(--gold)' : 'var(--muted)';
+  label.textContent      = s==='live' ? 'Live' : s==='demo' ? 'Demo' : 'Offline';
+}
+function toggleSyncMenu() { document.getElementById('sync-menu').classList.toggle('open'); }
+function manualRefresh()  { document.getElementById('sync-menu').classList.remove('open'); initialLoad(); toast('🔄 Refresh','Data diperbarui.'); }
+
+// ── API ───────────────────────────────────────────
+async function apiGet(params) {
+  if (DEMO_MODE || !BACKEND) return null;
+  const res  = await fetch(BACKEND + '?' + new URLSearchParams(params));
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error);
+  return json.data;
+}
+
+async function apiPost(action, payload) {
+  if (DEMO_MODE || !BACKEND) { toast('Mode Demo','Data tidak tersimpan.','warn'); return null; }
+  const res  = await fetch(BACKEND, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({action, payload}) });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error);
+  document.getElementById('sync-menu-time').textContent = new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+  return json.data;
+}
+
+// ── Helpers ───────────────────────────────────────
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function periodeStr(d) {
+  d = d||new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+function periodeLabel(p) {
+  const [y,m] = p.split('-');
+  return ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][parseInt(m)]+' '+y;
+}
+function formatRp(n) { return 'Rp '+(Number(n)||0).toLocaleString('id-ID'); }
+function numVal(id)  { return Number(document.getElementById(id)?.value)||0; }
+function escapeHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function avatarColor(name) {
+  const colors = ['#7C3AED','#1A4FA0','#0D9488','#D97706','#DC2626','#16A34A','#9333EA','#0891B2'];
+  let h = 0; for(let c of String(name)) h = (h*31+c.charCodeAt(0))%colors.length;
+  return colors[h];
+}
+
+let toastTimer;
+function toast(title, body, type) {
+  const el = document.getElementById('toast');
+  el.style.background = type==='warn' ? 'var(--gold)' : type==='err' ? 'var(--red)' : '#1D1140';
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-body').textContent  = body||'';
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 3500);
+}
+
+function toggleDark() {
+  const on = document.body.classList.toggle('dark');
+  document.getElementById('dark-icon').textContent = on ? '☀️' : '🌙';
+  try { localStorage.setItem('yuyun-theme', on?'dark':'light'); } catch(e){}
+}
+(function initTheme(){
+  try { if(localStorage.getItem('yuyun-theme')==='dark'){ document.body.classList.add('dark'); document.addEventListener('DOMContentLoaded',()=>{ const el=document.getElementById('dark-icon'); if(el)el.textContent='☀️'; }); } }catch(e){}
+})();
+
+// ── Progress ring ─────────────────────────────────
+function renderProgressRing(pct, color) {
+  const r=17, c=2*Math.PI*r, offset=c-(pct/100)*c;
+  return `<svg width="44" height="44" viewBox="0 0 44 44">
+    <circle class="prog-ring-track" cx="22" cy="22" r="${r}"/>
+    <circle class="prog-ring-fill" cx="22" cy="22" r="${r}" stroke="${color}" stroke-dasharray="${c}" stroke-dashoffset="${offset}"/>
+  </svg>`;
+}
+
+async function loadProgressBulan() {
+  const periode = periodeStr();
+  const container = document.getElementById('mkt-progress-section');
+  if (!container) return;
+  try {
+    const data = await apiGet({ action:'getProgressBulan', periode, divisi:'Marketing' });
+    const p = data ? data.progress : { hariTerisi:0, totalHariKerja:22 };
+    const pct = p.totalHariKerja ? Math.round(p.hariTerisi/p.totalHariKerja*100) : 0;
+    const color = pct>=80 ? 'var(--green)' : pct>=40 ? 'var(--gold)' : 'var(--red)';
+    container.innerHTML = `<div class="prog-card">
+      <div class="prog-ring">${renderProgressRing(pct,color)}<div class="prog-ring-label">${pct}%</div></div>
+      <div><div class="prog-title">Marketing — ${periodeLabel(periode)}</div><div class="prog-sub">${p.hariTerisi} / ${p.totalHariKerja} hari terisi</div></div>
+    </div>`;
+  } catch(e) {
+    container.innerHTML = `<div class="prog-card"><div class="prog-ring">${renderProgressRing(0,'var(--muted)')}<div class="prog-ring-label">0%</div></div><div><div class="prog-title">Marketing</div><div class="prog-sub">Belum ada data</div></div></div>`;
+  }
+}
+
+async function checkBadge() {
+  const today = todayStr();
+  try {
+    const data = await apiGet({ action:'getLaporanHarianByTanggal', tanggal:today, divisi:'Marketing' });
+    const sudah = data && data.laporanHarian && data.laporanHarian.status === 'submitted';
+    const badge = document.getElementById('badge-mkt');
+    if (badge) badge.style.display = sudah ? 'none' : 'flex';
+  } catch(e){}
+}
+
+// ── Karyawan (untuk lead rows) ────────────────────
+async function loadKaryawan() {
+  try {
+    const data = await apiGet({ action: 'getAll' });
+    if (data) {
+      if (data.karyawan) {
+        KARYAWAN_LIST = data.karyawan
+          .filter(k => k.aktif && k.jabatan && k.jabatan.toLowerCase().includes('marketing'))
+          .map(k => k.nama);
+      }
+      if (data.timPMB)      TIM_PMB_LIST     = data.timPMB.filter(t => t.aktif).map(t => t.nama);
+      if (data.koordinator) KOORDINATOR_LIST  = data.koordinator.filter(k => k.aktif).map(k => k.nama);
+    }
+    renderLeadRows();
+    if (closingRows.length > 0) renderClosingRows();
+  } catch(e) {
+    KARYAWAN_LIST    = ['Tito','Wenda','Kholis','Nuruk','Yuyun','Fajar','Bima','Nisa'];
+    TIM_PMB_LIST     = ['Tito Ersha','Yuyun Dwi Firma','Bimantara','Wenda Maylani','Nurul Fitri K.','Nur Kholis','Anisa Dwi Arifani','Fajar Maulana'];
+    KOORDINATOR_LIST = ['Bagus Ariex','Alfarizi','Irfan Andi','Naya Cikeas','Upik Wiyoto','Ari Wantoro','Erwin Maulana','Joko Irianto','Qomar','Roni Laksono','Silvana','Sopyan','Stefanus','Taufik Hidayat','Yazer Ibrahim','Zidane','Ersa'];
+    renderLeadRows();
+  }
+}
+
+// ── Periode dropdown ──────────────────────────────
+function loadPeriodeOptions() {
+  const now = new Date();
+  const bln = ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  const opts = [];
+  for (let i=0;i<12;i++) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const val = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const lbl = bln[d.getMonth()+1]+' '+d.getFullYear();
+    opts.push(`<option value="${val}">${lbl}</option>`);
+  }
+  ['bul-periode','nar-periode'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.innerHTML = opts.join('');
+  });
+}
+
+
+/* ═══════════════════════════════════════════════════
+   CLOSING — Load, Render, Save
+═══════════════════════════════════════════════════ */
+const PROGRAM_OPTIONS = ['RPL Khusus','RPL 6 Bln','RPL 1 Thn','RPL 2 Thn','K. Karyawan'];
+const PT_OPTIONS      = ['STISDU','STITBU','UNKRIS','STIA Mensis','STAISU','UNU Cirebon','Lainnya'];
+
+async function loadMarketing() {
+  const tanggal = document.getElementById('mkt-tanggal').value;
+  const chip    = document.getElementById('mkt-status-chip');
+  chip.className = 'status-chip kosong'; chip.textContent = 'Memuat...';
+  try {
+    const data = await apiGet({ action:'getLaporanHarianByTanggal', tanggal, divisi:'Marketing' });
+    const lap  = data ? data.laporanHarian : null;
+    closingRows = lap && lap.closingDetail ? JSON.parse(JSON.stringify(lap.closingDetail)) : [];
+    if (lap && lap.leadPerPic) {
+      leadData = {};
+      (lap.leadPerPic||[]).forEach(e=>{ leadData[e.nama]=e.jumlah; });
+    }
+    renderClosingRows();
+    renderLeadRows();
+    chip.className = lap ? 'status-chip terisi' : 'status-chip kosong';
+    chip.textContent = lap ? (lap.status==='submitted' ? `✓ Terisi (${lap.diisi_oleh})` : 'Draft') : 'Belum diisi';
+  } catch(e) {
+    closingRows = []; renderClosingRows();
+    chip.className = 'status-chip kosong'; chip.textContent = 'Belum diisi';
+  }
+}
+
+function getPICOptions(closingDari, selectedNama) {
+  // Kembalikan daftar nama sesuai tipe closing
+  const list = closingDari === 'Koordinator' ? KOORDINATOR_LIST : TIM_PMB_LIST;
+  if (!list.length) {
+    // Fallback kalau belum load: tampilkan input teks biasa via option kosong
+    return `<option value="">(Memuat...)</option>` +
+      (selectedNama ? `<option value="${escapeHtml(selectedNama)}" selected>${escapeHtml(selectedNama)}</option>` : '');
+  }
+  const opts = list.map(n => `<option value="${escapeHtml(n)}" ${n===selectedNama?'selected':''}>${escapeHtml(n)}</option>`);
+  // Tambah opsi "Lainnya..." untuk nama yang belum ada di daftar
+  const adaAlt = selectedNama && !list.includes(selectedNama);
+  if (adaAlt) opts.unshift(`<option value="${escapeHtml(selectedNama)}" selected>${escapeHtml(selectedNama)} (tidak ada di daftar)</option>`);
+  opts.push(`<option value="__lainnya__">+ Ketik nama lain...</option>`);
+  return opts.join('');
+}
+
+function onClosingDariChange(i, val) {
+  closingRows[i].closingDari = val;
+  closingRows[i].namaPIC     = ''; // reset nama saat ganti tipe
+  renderClosingRows();
+}
+
+function onNamaPICChange(i, val) {
+  if (val === '__lainnya__') {
+    // Ganti dropdown ke input teks bebas
+    const sel = document.querySelector(`#closing-row-${i} .pic-select`);
+    if (sel) {
+      const input = document.createElement('input');
+      input.className = 'lh-input pic-input';
+      input.placeholder = 'Ketik nama...';
+      input.value = closingRows[i].namaPIC || '';
+      input.oninput = (e) => { closingRows[i].namaPIC = e.target.value; };
+      sel.replaceWith(input);
+      input.focus();
+    }
+  } else {
+    closingRows[i].namaPIC = val;
+  }
+}
+
+function renderClosingRows() {
+  const wrap = document.getElementById('closing-list');
+  if (!wrap) return;
+  if (closingRows.length === 0) {
+    wrap.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px 0">Belum ada closing hari ini. Klik "+ Tambah Closing" untuk menambah.</div>';
+    return;
+  }
+  wrap.innerHTML = closingRows.map((r,i) => {
+    const dari = r.closingDari || 'Tim PMB';
+    return `<div class="closing-row" id="closing-row-${i}">
+      <input class="lh-input" placeholder="Nama mahasiswa" value="${escapeHtml(r.nama||'')}"
+        oninput="closingRows[${i}].nama=this.value"/>
+      <select class="lh-input" onchange="closingRows[${i}].program=this.value">
+        ${PROGRAM_OPTIONS.map(p=>`<option ${r.program===p?'selected':''}>${p}</option>`).join('')}
+      </select>
+      <select class="lh-input" onchange="closingRows[${i}].instansi=this.value">
+        ${PT_OPTIONS.map(p=>`<option ${r.instansi===p?'selected':''}>${p}</option>`).join('')}
+      </select>
+      <select class="lh-input" onchange="onClosingDariChange(${i},this.value)">
+        <option value="Tim PMB"     ${dari==='Tim PMB'?'selected':''}>Tim PMB</option>
+        <option value="Koordinator" ${dari==='Koordinator'?'selected':''}>Koordinator</option>
+      </select>
+      <select class="lh-input pic-select" onchange="onNamaPICChange(${i},this.value)">
+        ${getPICOptions(dari, r.namaPIC)}
+      </select>
+      <button class="dyn-remove" onclick="closingRows.splice(${i},1);renderClosingRows()">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function addClosing() {
+  closingRows.push({ nama:'', program:'RPL Khusus', instansi:'STISDU', closingDari:'Tim PMB', namaPIC:'' });
+  renderClosingRows();
+  const rows = document.querySelectorAll('#closing-list .closing-row');
+  if (rows.length) rows[rows.length-1].querySelector('input')?.focus();
+}
+
+async function saveMarketing(isSubmit) {
+  const tanggal = document.getElementById('mkt-tanggal').value;
+  if (!tanggal) { toast('⚠️ Tanggal kosong','Pilih tanggal terlebih dahulu.','warn'); return; }
+  const payload = {
+    tanggal, divisi:'Marketing', diisi_oleh: NAMA_USER,
+    status: isSubmit ? 'submitted' : 'draft',
+    closingDetail: closingRows.filter(r=>r.nama||r.program),
+    leadPerPic: Object.entries(leadData).map(([nama,jumlah])=>({nama,jumlah}))
+  };
+  try {
+    await apiPost('saveLaporanHarian', payload);
+    const chip = document.getElementById('mkt-status-chip');
+    chip.className = 'status-chip terisi';
+    chip.textContent = isSubmit ? `✓ Terisi (${NAMA_USER})` : 'Draft tersimpan';
+    toast(isSubmit ? '✅ Closing Tersimpan' : '💾 Draft Tersimpan',
+      isSubmit ? `${closingRows.filter(r=>r.nama).length} closing hari ini berhasil disimpan.` : '');
+    if (isSubmit) { document.getElementById('badge-mkt').style.display='none'; loadProgressBulan(); }
+  } catch(e) { toast('❌ Gagal', e.message, 'err'); }
+}
+
+
+/* ═══════════════════════════════════════════════════
+   LEAD PER PIC
+═══════════════════════════════════════════════════ */
+function renderLeadRows() {
+  const wrap = document.getElementById('lead-list');
+  if (!wrap) return;
+  if (KARYAWAN_LIST.length === 0) {
+    wrap.innerHTML = '<div style="color:var(--muted);font-size:12.5px;padding:10px 0">Memuat daftar PIC...</div>';
+    return;
+  }
+  wrap.innerHTML = KARYAWAN_LIST.map(nama => {
+    const val = leadData[nama] || '';
+    const bg  = avatarColor(nama);
+    return `<div class="lead-row">
+      <div class="lead-avatar" style="background:${bg}">${nama.charAt(0)}</div>
+      <div class="lead-name">${escapeHtml(nama)}</div>
+      <input class="lead-input" type="number" min="0" placeholder="0" value="${val}"
+        onchange="leadData['${escapeHtml(nama)}']=Number(this.value)||0"/>
+      <span class="lead-unit">lead</span>
+    </div>`;
+  }).join('');
+}
+
+async function loadLead() {
+  const tanggal = document.getElementById('lead-tanggal')?.value || document.getElementById('mkt-tanggal').value;
+  const chip    = document.getElementById('lead-status-chip');
+  if (chip) { chip.className='status-chip kosong'; chip.textContent='Memuat...'; }
+  try {
+    const data = await apiGet({ action:'getLaporanHarianByTanggal', tanggal, divisi:'Marketing' });
+    const lap  = data ? data.laporanHarian : null;
+    if (lap && lap.leadPerPic) {
+      leadData = {};
+      (lap.leadPerPic||[]).forEach(e=>{ leadData[e.nama]=e.jumlah; });
+    }
+    renderLeadRows();
+    if (chip) { chip.className=lap?'status-chip terisi':'status-chip kosong'; chip.textContent=lap?(lap.status==='submitted'?`✓ (${lap.diisi_oleh})`:'Draft'):'Belum diisi'; }
+  } catch(e) { if(chip){chip.className='status-chip kosong'; chip.textContent='Belum diisi';} }
+}
+
+async function saveLead(isSubmit) {
+  const tanggal = document.getElementById('lead-tanggal')?.value || document.getElementById('mkt-tanggal').value;
+  if (!tanggal) { toast('⚠️ Tanggal kosong','','warn'); return; }
+  const payload = {
+    tanggal, divisi:'Marketing', diisi_oleh: NAMA_USER,
+    status: isSubmit ? 'submitted' : 'draft',
+    closingDetail: closingRows.filter(r=>r.nama||r.program),
+    leadPerPic: Object.entries(leadData).filter(([,v])=>v>0).map(([nama,jumlah])=>({nama,jumlah}))
+  };
+  try {
+    await apiPost('saveLaporanHarian', payload);
+    const chip = document.getElementById('lead-status-chip');
+    if(chip){ chip.className='status-chip terisi'; chip.textContent=isSubmit?`✓ (${NAMA_USER})`:'Draft'; }
+    toast(isSubmit?'✅ Lead Tersimpan':'💾 Draft Tersimpan', '');
+  } catch(e) { toast('❌ Gagal',e.message,'err'); }
+}
+
+
+/* ═══════════════════════════════════════════════════
+   KAMPANYE IKLAN
+═══════════════════════════════════════════════════ */
+function renderKampanye() {
+  const wrap = document.getElementById('kampanye-list');
+  if (!wrap) return;
+  if (kampanyeRows.length===0) {
+    wrap.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0">Belum ada kampanye. Klik "+ Tambah Kampanye".</div>';
+    return;
+  }
+  wrap.innerHTML = kampanyeRows.map((k,i)=>`
+    <div class="kamp-row">
+      <div class="kamp-row-head">
+        <input class="kamp-nama-input" placeholder="Nama kampanye (cth: RPL STIS DU - Tito)" value="${escapeHtml(k.nama||'')}"
+          oninput="kampanyeRows[${i}].nama=this.value"/>
+        <button class="dyn-remove" onclick="kampanyeRows.splice(${i},1);renderKampanye()">✕</button>
+      </div>
+      <div class="kamp-nums">
+        <div class="kamp-num-field"><div class="lh-label">Lead</div>
+          <input class="lh-input" type="number" placeholder="0" value="${k.lead||''}" oninput="kampanyeRows[${i}].lead=Number(this.value)"/></div>
+        <div class="kamp-num-field"><div class="lh-label">CPL (Rp)</div>
+          <input class="lh-input" type="number" placeholder="0" value="${k.cpl||''}" oninput="kampanyeRows[${i}].cpl=Number(this.value)"/></div>
+        <div class="kamp-num-field"><div class="lh-label">Belanja Iklan (Rp)</div>
+          <input class="lh-input" type="number" placeholder="0" value="${k.belanja||''}" oninput="kampanyeRows[${i}].belanja=Number(this.value)"/></div>
+        <div class="kamp-num-field"><div class="lh-label">Status</div>
+          <select class="lh-input" onchange="kampanyeRows[${i}].status=this.value">
+            ${['aktif','nonaktif','baru'].map(s=>`<option ${k.status===s?'selected':''}>${s}</option>`).join('')}
+          </select></div>
+      </div>
+    </div>`).join('');
+}
+
+function addKampanye() {
+  kampanyeRows.push({ nama:'', lead:0, cpl:0, belanja:0, status:'aktif' });
+  renderKampanye();
+}
+
+function saveKampanye() {
+  toast('💾 Data Iklan Disimpan','Update kampanye iklan hari ini tersimpan di perangkat.');
+}
+
+
+/* ═══════════════════════════════════════════════════
+   RINGKASAN BULANAN
+═══════════════════════════════════════════════════ */
+async function loadBulanan() {
+  const periode = document.getElementById('bul-periode').value;
+  const chip    = document.getElementById('bul-chip');
+  const content = document.getElementById('bul-content');
+  chip.textContent='Memuat...'; chip.className='status-chip draft';
+  content.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted)">⏳ Menghitung dari data harian...</div>';
+  try {
+    const data = await apiGet({ action:'getRollupBulanan', periode });
+    const m = data ? data.rollup.marketing : null;
+    chip.className='status-chip terisi'; chip.textContent=periodeLabel(periode);
+    content.innerHTML = m ? renderBulanan(m, periode) : '<div style="padding:30px;text-align:center;color:var(--muted)">Belum ada data marketing di periode ini.</div>';
+  } catch(e) {
+    chip.className='status-chip kosong'; chip.textContent='Error';
+    content.innerHTML=`<div class="alert warn"><span>⚠️</span><span>Gagal memuat: ${e.message}</span></div>`;
+  }
+}
+
+function renderBulanan(m, periode) {
+  // Closing per program
+  const perProgram = {};
+  (m.closingList||[]).forEach(c=>{ perProgram[c.program]=(perProgram[c.program]||0)+1; });
+  const progRows = Object.entries(perProgram).sort((a,b)=>b[1]-a[1])
+    .map(([prog,n])=>`<tr><td>${escapeHtml(prog)}</td><td class="num">${n}</td></tr>`).join('')
+    || '<tr><td colspan="2" style="color:var(--muted)">Belum ada closing</td></tr>';
+
+  // Closing per PT
+  const perPT = {};
+  (m.closingList||[]).forEach(c=>{ perPT[c.instansi]=(perPT[c.instansi]||0)+1; });
+  const ptRows = Object.entries(perPT).sort((a,b)=>b[1]-a[1])
+    .map(([pt,n])=>`<tr><td>${escapeHtml(pt)}</td><td class="num">${n}</td></tr>`).join('')
+    || '<tr><td colspan="2" style="color:var(--muted)">Belum ada closing</td></tr>';
+
+  // Tim PMB — ranking per nama PIC
+  const pmbData  = m.perTimPMB || [];
+  const pmbRows  = pmbData.length
+    ? pmbData.map((p,i)=>`<tr>
+        <td><span class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</span></td>
+        <td>${escapeHtml(p.nama)}</td>
+        <td class="num">${p.total} closing</td>
+      </tr>`).join('')
+    : '<tr><td colspan="3" style="color:var(--muted);text-align:center">Belum ada data</td></tr>';
+
+  // Koordinator — ranking per nama
+  const krdData  = m.perKoordinator || [];
+  const krdRows  = krdData.length
+    ? krdData.map((k,i)=>`<tr>
+        <td><span class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</span></td>
+        <td>${escapeHtml(k.nama)}</td>
+        <td class="num">${k.total} closing</td>
+      </tr>`).join('')
+    : '<tr><td colspan="3" style="color:var(--muted);text-align:center">Belum ada data</td></tr>';
+
+  // Lead per PIC
+  const picRanked = Object.entries(m.leadTotal||{}).sort((a,b)=>b[1]-a[1]);
+  const picRows   = picRanked.length
+    ? picRanked.map(([nama,lead],i)=>`<tr>
+        <td><span class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</span></td>
+        <td>${escapeHtml(nama)}</td>
+        <td class="num">${lead} lead</td>
+      </tr>`).join('')
+    : '<tr><td colspan="3" style="color:var(--muted);text-align:center">Belum ada data</td></tr>';
+
+  return `
+    <div class="alert success"><span>✓</span><span>Ringkasan <b>otomatis</b> bulan ${periodeLabel(periode)} dari seluruh input harian Marketing.</span></div>
+
+    <!-- Scorecard -->
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-lbl">Total Closing</div>
+        <div class="stat-val purple">${m.totalClosing||0}</div>
+      </div>
+      <div class="stat-box" style="border-left:3px solid var(--purple)">
+        <div class="stat-lbl">Tim PMB</div>
+        <div class="stat-val purple">${m.totalClosingTimPMB||0}
+          <span style="font-size:13px;font-family:Inter,sans-serif;font-weight:600;color:var(--muted)">mhs</span>
+        </div>
+      </div>
+      <div class="stat-box" style="border-left:3px solid var(--blue)">
+        <div class="stat-lbl">Koordinator</div>
+        <div class="stat-val" style="color:var(--blue)">${m.totalClosingKoordinator||0}
+          <span style="font-size:13px;font-family:Inter,sans-serif;font-weight:600;color:var(--muted)">mhs</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Program & PT -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div class="lh-section" style="margin:0">
+        <div class="lh-section-head" style="cursor:default;font-size:12.5px">🎯 per Program</div>
+        <div class="lh-section-body" style="padding:0">
+          <table class="mini-tbl"><thead><tr><th>Program</th><th>Closing</th></tr></thead><tbody>${progRows}</tbody></table>
+        </div>
+      </div>
+      <div class="lh-section" style="margin:0">
+        <div class="lh-section-head" style="cursor:default;font-size:12.5px">🏛️ per Perguruan Tinggi</div>
+        <div class="lh-section-body" style="padding:0">
+          <table class="mini-tbl"><thead><tr><th>PT</th><th>Closing</th></tr></thead><tbody>${ptRows}</tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tim PMB vs Koordinator — terpisah -->
+    <div class="lh-section" style="margin-bottom:12px">
+      <div class="lh-section-head" style="cursor:default">
+        👥 Closing — Tim PMB
+        <span style="margin-left:8px;background:var(--purple2);color:var(--purple);font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px">${m.totalClosingTimPMB||0} mhs</span>
+      </div>
+      <div class="lh-section-body" style="padding:0">
+        <table class="mini-tbl">
+          <thead><tr><th>#</th><th>Nama Tim PMB</th><th>Closing</th></tr></thead>
+          <tbody>${pmbRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="lh-section" style="margin-bottom:12px">
+      <div class="lh-section-head" style="cursor:default">
+        🤝 Closing — Koordinator
+        <span style="margin-left:8px;background:var(--blue2);color:var(--blue);font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px">${m.totalClosingKoordinator||0} mhs</span>
+      </div>
+      <div class="lh-section-body" style="padding:0">
+        <table class="mini-tbl">
+          <thead><tr><th>#</th><th>Nama Koordinator</th><th>Closing</th></tr></thead>
+          <tbody>${krdRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Lead per PIC -->
+    <div class="lh-section">
+      <div class="lh-section-head" style="cursor:default">📈 Ranking Lead per PIC</div>
+      <div class="lh-section-body" style="padding:0">
+        <table class="mini-tbl">
+          <thead><tr><th>#</th><th>PIC</th><th>Total Lead</th></tr></thead>
+          <tbody>${picRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   NARATIF BULANAN
+═══════════════════════════════════════════════════ */
+function addNarasiItem(listId) {
+  const wrap = document.getElementById(listId);
+  const div  = document.createElement('div');
+  div.className = 'narasi-item';
+  div.innerHTML = `<input class="lh-input" placeholder="Tulis poin..."/><button class="dyn-remove" onclick="this.parentElement.remove()">✕</button>`;
+  wrap.appendChild(div);
+  div.querySelector('input').focus();
+}
+
+function getNarasiItems(listId) {
+  return Array.from(document.querySelectorAll(`#${listId} .narasi-item input`))
+    .map(el=>el.value.trim()).filter(Boolean);
+}
+
+function fillNarasiItems(listId, items) {
+  const wrap = document.getElementById(listId);
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  (items||[]).forEach(teks=>{
+    const div = document.createElement('div');
+    div.className='narasi-item';
+    div.innerHTML=`<input class="lh-input" value="${escapeHtml(teks)}"/><button class="dyn-remove" onclick="this.parentElement.remove()">✕</button>`;
+    wrap.appendChild(div);
+  });
+}
+
+async function loadNarasi() {
+  const periode = document.getElementById('nar-periode').value;
+  const chip    = document.getElementById('nar-chip');
+  chip.textContent='Memuat...'; chip.className='status-chip draft';
+  ['nar-capaian-list','nar-kendala-list','nar-rekomendasi-list'].forEach(id=>fillNarasiItems(id,[]));
+  try {
+    const data = await apiGet({ action:'getLaporanBulananDivisi', periode, divisi:'Marketing' });
+    const lap  = data ? data.laporanBulanan : null;
+    if (lap && lap.data_narasi) {
+      const n = lap.data_narasi;
+      fillNarasiItems('nar-capaian-list',    n.capaian);
+      fillNarasiItems('nar-kendala-list',    n.kendala);
+      fillNarasiItems('nar-rekomendasi-list',n.rekomendasi);
+    }
+    const status = lap ? lap.status : 'draft';
+    chip.className = status==='narasi_selesai'||status==='final' ? 'status-chip terisi' : 'status-chip draft';
+    chip.textContent = status==='narasi_selesai' ? '✓ Dikirim ke GM' : status==='final' ? '✓ Final' : 'Draft';
+  } catch(e) { chip.className='status-chip kosong'; chip.textContent='Draft'; }
+}
+
+async function saveNarasi(kirimKeGM) {
+  const periode = document.getElementById('nar-periode').value;
+  const narasi  = {
+    capaian:     getNarasiItems('nar-capaian-list'),
+    kendala:     getNarasiItems('nar-kendala-list'),
+    rekomendasi: getNarasiItems('nar-rekomendasi-list')
+  };
+  try {
+    await apiPost('saveNaratifBulanan', { periode, divisi:'Marketing', diisi_oleh:NAMA_USER, status: kirimKeGM?'narasi_selesai':'draft', data_narasi:narasi });
+    const chip = document.getElementById('nar-chip');
+    chip.className='status-chip terisi';
+    chip.textContent = kirimKeGM ? '✓ Dikirim ke GM' : 'Draft tersimpan';
+    toast(kirimKeGM?'📤 Dikirim ke GM':'💾 Draft Tersimpan', `Laporan naratif Marketing bulan ${periodeLabel(periode)} berhasil ${kirimKeGM?'dikirim':'disimpan'}.`);
+  } catch(e) { toast('❌ Gagal',e.message,'err'); }
+}
+</script>
+</body>
+</html>
